@@ -89,18 +89,24 @@ The notebook also supports running in Google Colab. When opened from GitHub, the
 
 ## VI. Initial Results
 
-The project currently produces three initial figures that summarize the monitor network, source coverage, and basic station-level quality metrics.
+Using the current 12-month PM2.5 workflow, the auditor produces three initial figures that summarize the statewide monitor network, the relative size of each data source, and the quality characteristics of the station-level records.
 
-![PM2.5 monitor locations in Illinois](figures/figure_monitor_locations_with_counties.png)
-> Figure 1. PM2.5 monitor locations from EPA AQS and OpenAQ in Illinois. County boundaries are shown for geographic reference. One offshore OpenAQ point in Lake Michigan was excluded from the map because it does not represent an on-land Illinois monitor location for the coverage visualization.
+![PM2.5 monitor locations in Illinois](images/figure_monitor_locations_with_counties.png)
+> Figure 1. PM2.5 monitor locations from EPA AQS and OpenAQ in Illinois. County boundaries are shown for geographic reference. One offshore OpenAQ point in Lake Michigan was excluded from the visualization because it does not represent an on-land Illinois monitor location for the statewide coverage map.
 
-![Number of records and stations by source](figures/figure_source_counts.png)
+Figure 1 shows that monitor coverage is uneven across Illinois. AQS provides the broader statewide backbone, with stations spread across northeastern, central, western, and southern Illinois. OpenAQ contributes a smaller supplementary network that is concentrated mainly in northeastern Illinois and the Chicago region. The spatial pattern suggests that Illinois PM2.5 monitoring is denser near Chicago than in much of the rest of the state, which supports the need for a coverage-focused audit.
+
+![Number of records and stations by source](images/figure_source_counts.png)
 > Figure 2. Number of PM2.5 records and number of unique monitoring stations by source. This figure summarizes the relative size of the AQS and OpenAQ data contributions in the current workflow.
 
-![Station-level quality metrics by source](figures/figure_quality_metrics.png)
+Figure 2 shows that AQS contributes most of the total PM2.5 records and most of the unique station locations in the current 12-month workflow. OpenAQ still adds useful observations, but it functions more as a complementary source than as the primary statewide framework. In practical terms, this means that the two-source workflow is valuable for comparison and cross-checking, but AQS remains the dominant source for a broad Illinois audit.
+
+![Station-level quality metrics by source](images/figure_quality_metrics.png)
 > Figure 3. Station-level quality metrics by source. The histograms show the distributions of missing rate, average percent complete, and outlier rate across AQS and OpenAQ stations.
 
-These figures are intended as initial project results rather than final scientific conclusions. They demonstrate that the workflow can now move from raw data acquisition into interpretable exploratory analysis.
+Figure 3 indicates that most stations have relatively high completeness, but the quality metrics are not uniform across the network. Some stations show very low missingness and nearly complete records, while others have much larger missing fractions or slightly elevated outlier rates. Together, these results suggest three main conclusions from the 12-month auditor: monitoring coverage is spatially uneven, AQS provides the most stable statewide PM2.5 backbone, and supplementary sources such as OpenAQ are useful but require careful screening before direct interpretation.
+
+These figures should be treated as initial analytical results rather than final scientific conclusions, but they show that the project has successfully moved from data ingestion into interpretable exploratory analysis.
 
 ## VII. Expected Outputs
 
@@ -120,7 +126,11 @@ These files are the main evidence that the workflow has completed successfully.
 
 ## VIII. Summary
 
-This repository documents a revised PM2.5 monitoring audit project for Illinois. The project now emphasizes a reproducible workflow over overly ambitious scope, and the current implementation supports that goal well. The notebook can be rerun in a sample-data mode for reproducibility or in an API mode for direct data collection. The main deliverables are harmonized PM2.5 tables, station-level quality summaries, coverage diagnostics, and baseline modeling outputs. This version of the project is more modest than the original proposal, but it is also more realistic, more reproducible, and better aligned with the course expectations.
+This repository documents a revised PM2.5 monitoring audit project for Illinois. The project now emphasizes a reproducible workflow over overly ambitious scope, and the current implementation supports that goal well. The notebook can be rerun in a sample-data mode for reproducibility or in an API mode for direct data collection. The main deliverables are harmonized PM2.5 tables, station-level quality summaries, coverage diagnostics, and baseline modeling outputs.
+
+The current 12-month auditor supports a clear set of initial conclusions. First, PM2.5 monitoring coverage is not spatially uniform across Illinois, with the greatest concentration of stations in northeastern Illinois and substantially lighter coverage across much of the rest of the state. Second, AQS provides the primary statewide structure of the audit, while OpenAQ serves as a useful but smaller supplementary source. Third, data completeness is generally strong for many stations, but station-level quality varies enough that quality screening remains an important part of any comparison or later modeling step.
+
+This version of the project is more modest than the original proposal, but it is also more realistic, more reproducible, and better aligned with the course expectations. It establishes a stable baseline workflow that can support later extensions in spatial equity analysis, calibration, or bias-correction if time allows.
 
 ## IX. Selected References
 
