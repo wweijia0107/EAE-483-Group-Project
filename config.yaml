@@ -1,0 +1,21 @@
+project_name: "PM2.5 Monitoring Coverage and Data Quality Auditor"
+year: 2024
+state_code: "17"
+pollutant: "PM2.5"
+aqs_pm25_param: "88101"
+openaq_pm25_id: 2
+study_region: "Illinois with emphasis on the Chicago-DeKalb corridor"
+bbox:
+  min_lon: -88.95
+  min_lat: 41.60
+  max_lon: -87.30
+  max_lat: 42.45
+use_sample_data: true
+sample_paths:
+  aqs: "data/sample/aqs_daily_sample.csv"
+  openaq: "data/sample/openaq_daily_sample.csv"
+outputs:
+  processed_dir: "data/processed"
+  figures_dir: "figures"
+  reports_dir: "reports"
+
