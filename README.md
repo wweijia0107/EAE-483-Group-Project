@@ -87,7 +87,22 @@ USE_SAMPLE_DATA = False
 
 The notebook also supports running in Google Colab. When opened from GitHub, the first code cell will locate the repository and clone it into `/content` if needed. If Colab is still using an older cached copy of the repository, delete `/content/EAE-483-Group-Project`, restart the runtime, and rerun the notebook from the top.
 
-## VI. Expected Outputs
+## VI. Initial Results
+
+The project currently produces three initial figures that summarize the monitor network, source coverage, and basic station-level quality metrics.
+
+![PM2.5 monitor locations in Illinois](figures/figure_monitor_locations_with_counties.png)
+> Figure 1. PM2.5 monitor locations from EPA AQS and OpenAQ in Illinois. County boundaries are shown for geographic reference. One offshore OpenAQ point in Lake Michigan was excluded from the map because it does not represent an on-land Illinois monitor location for the coverage visualization.
+
+![Number of records and stations by source](figures/figure_source_counts.png)
+> Figure 2. Number of PM2.5 records and number of unique monitoring stations by source. This figure summarizes the relative size of the AQS and OpenAQ data contributions in the current workflow.
+
+![Station-level quality metrics by source](figures/figure_quality_metrics.png)
+> Figure 3. Station-level quality metrics by source. The histograms show the distributions of missing rate, average percent complete, and outlier rate across AQS and OpenAQ stations.
+
+These figures are intended as initial project results rather than final scientific conclusions. They demonstrate that the workflow can now move from raw data acquisition into interpretable exploratory analysis.
+
+## VII. Expected Outputs
 
 After a successful run, the project writes the following outputs:
 
@@ -103,11 +118,11 @@ After a successful run, the project writes the following outputs:
 
 These files are the main evidence that the workflow has completed successfully.
 
-## VII. Summary
+## VIII. Summary
 
 This repository documents a revised PM2.5 monitoring audit project for Illinois. The project now emphasizes a reproducible workflow over overly ambitious scope, and the current implementation supports that goal well. The notebook can be rerun in a sample-data mode for reproducibility or in an API mode for direct data collection. The main deliverables are harmonized PM2.5 tables, station-level quality summaries, coverage diagnostics, and baseline modeling outputs. This version of the project is more modest than the original proposal, but it is also more realistic, more reproducible, and better aligned with the course expectations.
 
-## VIII. Selected References
+## IX. Selected References
 
 Hua, J., Y. Zhang, B. de Foy, X. Mei, J. Shang, Y. Zhang, I. D. Sulaymon, and D. Zhou, 2021: Improved PM2.5 concentration estimates from low-cost sensors using calibration models categorized by relative humidity. *Aerosol Science and Technology*, 55, 600-613. https://doi.org/10.1080/02786826.2021.1873911
 
@@ -119,6 +134,6 @@ Rosales, C., J. R. Bratburd, S. Diez, S. Duncan, C. Malings, and P. Pant, 2025: 
 
 Wang, Y., J. D. Marshall, and J. S. Apte, 2024: U.S. ambient air monitoring network has inadequate coverage under new PM2.5 standard. *Environmental Science & Technology Letters*, 11, 1220-1226. https://doi.org/10.1021/acs.estlett.4c00605
 
-## IX. License
+## X. License
 
 This project is released under the MIT License. See [LICENSE](LICENSE).
