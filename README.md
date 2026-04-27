@@ -1,52 +1,115 @@
 # Environmental Monitoring Coverage and Bias Auditor for PM2.5 in Illinois
 
-Authors: Allen Wang and Daniel Duan
+Allen Wang and Daniel Duan
 
-## I. Introduction and Background
+## Abstract
 
-This project examines PM2.5 monitoring coverage and data quality in Illinois, with particular attention to the Chicago-DeKalb corridor. PM2.5 is an appropriate focus for a geoscience data project because concentrations can vary substantially across short distances, while monitor coverage is still spatially uneven. That combination makes PM2.5 a useful case for studying how different monitoring systems represent environmental conditions and where important gaps may remain.
+This project develops a reproducible environmental monitoring auditor for fine particulate matter (PM2.5) in Illinois. The workflow combines U.S. Environmental Protection Agency Air Quality System (AQS) observations with OpenAQ observations, standardizes both sources into a shared schema, and produces station-level coverage and data-quality diagnostics. The current implementation emphasizes a realistic undergraduate machine learning workflow rather than a fully operational air-quality calibration system. AQS provides the broader Illinois monitoring backbone, while OpenAQ serves as a supplementary source for paired comparison and exploratory modeling. For paired PM2.5 observations, a random forest regressor and a linear regression baseline are used to estimate AQS-like PM2.5 values from OpenAQ and station-pair features. The random forest model performed slightly better than linear regression, with an R2 of 0.8784, RMSE of 1.378 ug/m3, and MAE of 0.7239 ug/m3. These results suggest that OpenAQ data can support exploratory comparison with AQS, but the limited OpenAQ station count, uneven spatial coverage, and temporal coverage differences mean that AQS remains the more reliable reference source for statewide interpretation.
 
-Our original proposal attempted to cover monitor coverage, data-quality checks, and more advanced calibration or bias-correction ideas at the same time. After revising the scope, we narrowed the project to a more realistic undergraduate workflow centered on three questions: how to collect PM2.5 data from multiple sources, how to standardize those records into one shared structure, and how to generate basic coverage and quality diagnostics in a reproducible way. This direction remains well supported by the literature on incomplete PM2.5 monitoring coverage, environmental justice, and the challenges of comparing low-cost and regulatory observations.
+## Significance Statement
 
-## II. Data and Methods
+PM2.5 monitoring networks are not evenly distributed, so a reproducible audit of monitor coverage and data quality is important before using observations for environmental interpretation or machine learning. This project shows how regulatory AQS data and OpenAQ data can be collected, harmonized, evaluated, and compared with simple supervised learning models. The workflow helps identify where the data are strong, where they are incomplete, and why supplementary sources should be screened carefully before being used as substitutes for regulatory monitoring.
+
+## 1. Introduction
+
+This project examines PM2.5 monitoring coverage and data quality in Illinois, with particular attention to the Chicago-DeKalb corridor and the broader statewide monitoring network. PM2.5 is an appropriate focus for a geoscience data project because concentrations can vary substantially across short distances, while monitor coverage is spatially uneven. That combination makes PM2.5 useful for studying how different monitoring systems represent environmental conditions and where important gaps may remain.
+
+The original project proposal attempted to cover monitor coverage, data-quality checks, and more advanced calibration or bias-correction ideas at the same time. The final workflow narrows that scope into a more realistic course project centered on three questions: how to collect PM2.5 data from multiple sources, how to standardize those records into one shared structure, and how to generate basic coverage, data-quality, and machine learning diagnostics in a reproducible way.
+
+## 2. Data and Methods
+
+### 2a. Data Sources
 
 The project uses two main PM2.5 data sources:
 
-1. EPA AQS daily PM2.5 observations
-2. OpenAQ PM2.5 observations and metadata
+1. EPA AQS daily PM2.5 observations.
+2. OpenAQ PM2.5 observations and metadata.
 
-The workflow is built around a reproducible notebook that supports both sample data and API-driven runs. The current baseline method has four main stages:
+AQS is treated as the primary regulatory reference source. OpenAQ is treated as a supplementary open-data source that can add comparison value but must be screened for spatial, temporal, and quality limitations.
 
-1. Read sample data or request PM2.5 observations from AQS and OpenAQ
-2. Standardize records into one shared schema with source, station ID, timestamps, coordinates, units, and PM2.5 values
-3. Compute basic station-level quality metrics such as missingness, temporal coverage, and outlier rates
-4. Generate summary tables and figures for coverage diagnostics, data quality, and a simple paired-modeling experiment
+### 2b. Study Area and Time Period
 
-The code is intentionally focused on a manageable toolkit for the course project. The primary libraries are `requests`, `pandas`, `numpy`, `matplotlib`, and `scikit-learn`, with notebook-based execution as the main project entry point.
+The study area is Illinois, with emphasis on the Chicago-DeKalb corridor in northeastern Illinois. The current workflow is configured for 2024. AQS is queried at the Illinois state level. OpenAQ is queried by a bounding box and location limit, so OpenAQ results should be interpreted as a supplementary sample rather than a complete census of all possible OpenAQ PM2.5 locations in Illinois.
 
-## III. Current Project Status
+### 2c. Preprocessing
 
-The current repository reflects a narrowed and more reproducible version of the original plan.
+The workflow standardizes records into a shared schema with source provider, station ID, timestamps, coordinates, units, PM2.5 value, quality flag, expected count, observed count, and percent complete. The processing steps include timestamp normalization, numeric type conversion, duplicate removal, station-level completeness metrics, outlier-rate calculations, and AQS-OpenAQ paired observations for machine learning.
 
-- Scope, schema, and API access decisions are complete
-- Data ingestion and harmonization are implemented in the notebook workflow
-- Sample-data mode is available for reproducibility without private API keys
-- API mode is available for direct AQS and OpenAQ requests
-- Coverage diagnostics, station-level quality summaries, and baseline model outputs are written to disk
+### 2d. Machine Learning Methods
 
-More advanced spatial equity analysis and calibration remain secondary extensions rather than the project core. This is consistent with the revised project plan in our report draft, where the main goal is to establish a stable, honest workflow before attempting more ambitious modeling.
+The machine learning task is supervised regression. The target variable is AQS PM2.5 concentration, and the predictors include OpenAQ PM2.5 concentration, percent completeness, day of year, and the spatial difference between paired AQS and OpenAQ stations. The workflow compares a linear regression baseline with a random forest regressor. Linear regression is included because it is simple and interpretable. Random forest regression is included because it can capture nonlinear relationships while remaining appropriate for a course-level model comparison.
 
-## IV. Repository Structure
+Training and validation are organized with grouped cross-validation by station pair. This avoids placing observations from the same AQS-OpenAQ pair into both training and validation folds in a way that would make the model evaluation look too optimistic. Model selection is based on standard regression metrics: RMSE, MAE, and R2.
+
+## 3. Results
+
+### 3a. Coverage and Data Quality
+
+The 2024 workflow returned 35 AQS stations and 10 OpenAQ stations. AQS contributed 9591 records, while OpenAQ contributed 308 records. This difference shows that AQS provides the broader and more stable Illinois monitoring backbone, while OpenAQ is useful mainly as a supplementary source.
+
+| Provider | Stations | Records | Average PM2.5 | Average missing rate | Average percent complete |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| AQS | 35 | 9591 | 7.459 | 0.2260 | 100.0 |
+| OpenAQ | 10 | 308 | 8.657 | 0.0032 | 96.9 |
+
+Table 1. Summary of station count, record count, average PM2.5, and coverage metrics by provider.
+
+AQS has many more records and stations, but some AQS stations have substantial missingness. OpenAQ has a low missing rate within the downloaded period, but its station count and record count are much smaller. Therefore, OpenAQ completeness should not be interpreted as stronger statewide coverage.
+
+### 3b. Machine Learning Performance
+
+The random forest regressor performed slightly better than the linear regression baseline. However, the small performance gap means that a simple linear relationship already explains much of the paired AQS-OpenAQ variation.
+
+| Model | Folds | RMSE | MAE | R2 |
+| --- | ---: | ---: | ---: | ---: |
+| RandomForestRegressor | 3 | 1.3780 | 0.7239 | 0.8784 |
+| LinearRegression | 3 | 1.4024 | 0.7904 | 0.8722 |
+
+Table 2. Grouped cross-validation model metrics for predicting AQS PM2.5 from OpenAQ and station-pair features.
+
+RMSE and MAE are in ug/m3. The random forest MAE of 0.7239 means that the model's average absolute prediction error is less than 1 ug/m3. The RMSE of 1.3780 is larger than the MAE, which indicates that some paired observations have larger errors. The R2 of 0.8784 means that the model explains about 87.8% of the variation in paired AQS PM2.5 values.
+
+### 3c. Initial Figures
+
+Using the current 12-month PM2.5 workflow, the auditor produces figures that summarize the statewide monitor network, the relative size of each data source, and the quality characteristics of station-level records.
+
+![PM2.5 monitor locations in Illinois](images/figure_monitor_locations_with_counties.png)
+
+Figure 1. PM2.5 monitor locations from EPA AQS and OpenAQ in Illinois. County boundaries are shown for geographic reference. API-returned points outside the Illinois land boundary should be excluded from Illinois coverage interpretation.
+
+Figure 1 shows that monitor coverage is spatially uneven. AQS provides a broader statewide backbone, while OpenAQ contributes a smaller supplementary network. Because OpenAQ uses a rectangular query region, some returned locations can fall outside the Illinois state boundary unless a state-boundary spatial filter is applied.
+
+![Number of records and stations by source](images/figure_source_counts.png)
+
+Figure 2. Number of PM2.5 records and number of unique monitoring stations by source.
+
+Figure 2 shows that AQS contributes most of the total PM2.5 records and most of the unique station locations. OpenAQ adds useful observations, but it does not replace AQS for statewide analysis.
+
+![Station-level quality metrics by source](images/figure_quality_metrics.png)
+
+Figure 3. Station-level quality metrics by source. The histograms show the distributions of missing rate, average percent complete, and outlier rate across AQS and OpenAQ stations.
+
+Figure 3 indicates that station-level quality is not uniform. Some AQS stations have nearly complete records, while other stations have much larger missing fractions. OpenAQ records are relatively complete within the downloaded period, but the smaller number of stations and records limits broader interpretation.
+
+## 4. Discussion and Conclusions
+
+The project demonstrates that a reproducible PM2.5 auditor can identify important differences between regulatory and open monitoring sources. AQS has broader Illinois coverage and should remain the primary reference source. OpenAQ can support exploratory comparison and paired modeling, but its limited station count, rectangular bounding-box query, and smaller record count require careful caveats.
+
+The machine learning results support the idea that OpenAQ observations contain useful information for estimating nearby AQS PM2.5 values. However, the model should be interpreted as exploratory calibration rather than a final scientific correction model. The strongest project conclusion is not that OpenAQ can replace AQS, but that a transparent audit can show when supplementary data are useful and when their limitations matter.
+
+## 5. Reproducibility and Repository Use
+
+### 5a. Repository Structure
 
 The most important files in the repository are:
 
-- [notebooks/PM25_Auditor_Workflow.ipynb](notebooks/PM25_Auditor_Workflow.ipynb): main reproducible notebook
-- [src/pm25_auditor/pipeline.py](src/pm25_auditor/pipeline.py): shared processing utilities used by the workflow
-- [config.yaml](config.yaml): study settings and output paths
-- [docs/data_dictionary.md](docs/data_dictionary.md): internal schema documentation
-- [data/sample/](data/sample): included sample datasets for reproducible runs without API access
+- [notebooks/PM25_Auditor_Workflow.ipynb](notebooks/PM25_Auditor_Workflow.ipynb): main reproducible notebook.
+- [src/pm25_auditor/pipeline.py](src/pm25_auditor/pipeline.py): shared processing utilities used by the workflow.
+- [config.yaml](config.yaml): study settings and output paths.
+- [docs/data_dictionary.md](docs/data_dictionary.md): internal schema documentation.
+- [data/sample/](data/sample): included sample datasets for reproducible runs without API access.
 
-## V. How to Run the Project
+### 5b. How to Run the Project
 
 Install the required packages:
 
@@ -54,20 +117,16 @@ Install the required packages:
 pip install -r requirements.txt
 ```
 
-### Default Reproducible Mode
+To run in default reproducible mode:
 
-1. Open [PM25_Auditor_Workflow.ipynb](notebooks/PM25_Auditor_Workflow.ipynb)
-2. Leave `USE_SAMPLE_DATA = True`
-3. Run the notebook from top to bottom
+1. Open [PM25_Auditor_Workflow.ipynb](notebooks/PM25_Auditor_Workflow.ipynb).
+2. Leave `USE_SAMPLE_DATA = True`.
+3. Run the notebook from top to bottom.
 
-This mode is the easiest way for instructors or classmates to reproduce the workflow because it does not require API credentials.
+To run with live AQS and OpenAQ data:
 
-### API Mode
-
-To run the notebook with live AQS and OpenAQ data:
-
-1. Create a `.env` file in the repository root based on `.env.example`
-2. Add your credentials in this format:
+1. Create a `.env` file in the repository root based on `.env.example`.
+2. Add credentials in this format:
 
 ```env
 AQS_EMAIL=your_email_here
@@ -75,42 +134,12 @@ AQS_KEY=your_aqs_key_here
 OPENAQ_KEY=your_openaq_key_here
 ```
 
-3. Open the notebook and set:
+3. Set `USE_SAMPLE_DATA = False` in the notebook.
+4. Run the notebook from the beginning.
 
-```python
-USE_SAMPLE_DATA = False
-```
+### 5c. Expected Outputs
 
-4. Run the notebook from the beginning
-
-### Colab Notes
-
-The notebook also supports running in Google Colab. When opened from GitHub, the first code cell will locate the repository and clone it into `/content` if needed. If Colab is still using an older cached copy of the repository, delete `/content/EAE-483-Group-Project`, restart the runtime, and rerun the notebook from the top.
-
-## VI. Initial Results
-
-Using the current 12-month PM2.5 workflow, the auditor produces three initial figures that summarize the statewide monitor network, the relative size of each data source, and the quality characteristics of the station-level records.
-
-![PM2.5 monitor locations in Illinois](images/figure_monitor_locations_with_counties.png)
-> Figure 1. PM2.5 monitor locations from EPA AQS and OpenAQ in Illinois. County boundaries are shown for geographic reference. One offshore OpenAQ point in Lake Michigan was excluded from the visualization because it does not represent an on-land Illinois monitor location for the statewide coverage map.
-
-Figure 1 shows that monitor coverage is uneven across Illinois. AQS provides the broader statewide backbone, with stations spread across northeastern, central, western, and southern Illinois. OpenAQ contributes a smaller supplementary network that is concentrated mainly in northeastern Illinois and the Chicago region. The spatial pattern suggests that Illinois PM2.5 monitoring is denser near Chicago than in much of the rest of the state, which supports the need for a coverage-focused audit.
-
-![Number of records and stations by source](images/figure_source_counts.png)
-> Figure 2. Number of PM2.5 records and number of unique monitoring stations by source. This figure summarizes the relative size of the AQS and OpenAQ data contributions in the current workflow.
-
-Figure 2 shows that AQS contributes most of the total PM2.5 records and most of the unique station locations in the current 12-month workflow. OpenAQ still adds useful observations, but it functions more as a complementary source than as the primary statewide framework. In practical terms, this means that the two-source workflow is valuable for comparison and cross-checking, but AQS remains the dominant source for a broad Illinois audit.
-
-![Station-level quality metrics by source](images/figure_quality_metrics.png)
-> Figure 3. Station-level quality metrics by source. The histograms show the distributions of missing rate, average percent complete, and outlier rate across AQS and OpenAQ stations.
-
-Figure 3 indicates that most stations have relatively high completeness, but the quality metrics are not uniform across the network. Some stations show very low missingness and nearly complete records, while others have much larger missing fractions or slightly elevated outlier rates. Together, these results suggest three main conclusions from the 12-month auditor: monitoring coverage is spatially uneven, AQS provides the most stable statewide PM2.5 backbone, and supplementary sources such as OpenAQ are useful but require careful screening before direct interpretation.
-
-These figures should be treated as initial analytical results rather than final scientific conclusions, but they show that the project has successfully moved from data ingestion into interpretable exploratory analysis.
-
-## VII. Expected Outputs
-
-After a successful run, the project writes the following outputs:
+After a successful run, the project writes these outputs:
 
 - `data/processed/aqs_clean.csv`
 - `data/processed/openaq_clean.csv`
@@ -122,17 +151,29 @@ After a successful run, the project writes the following outputs:
 - `figures/monthly_mean_by_provider.png`
 - `figures/station_map.png`
 
-These files are the main evidence that the workflow has completed successfully.
+## 6. Availability Statement
 
-## VIII. Summary
+The project code, notebook, sample data, configuration file, and documentation are available in this GitHub repository: [https://github.com/wweijia0107/EAE-483-Group-Project](https://github.com/wweijia0107/EAE-483-Group-Project). Live API runs require separate AQS and OpenAQ credentials, which are not stored in the repository. Generated raw, processed, report, and figure outputs are reproducible from the notebook but are not all committed because some output directories are intentionally ignored.
 
-This repository documents a revised PM2.5 monitoring audit project for Illinois. The project now emphasizes a reproducible workflow over overly ambitious scope, and the current implementation supports that goal well. The notebook can be rerun in a sample-data mode for reproducibility or in an API mode for direct data collection. The main deliverables are harmonized PM2.5 tables, station-level quality summaries, coverage diagnostics, and baseline modeling outputs.
+## APPENDIX A. Requirements Document Crosswalk
 
-The current 12-month auditor supports a clear set of initial conclusions. First, PM2.5 monitoring coverage is not spatially uniform across Illinois, with the greatest concentration of stations in northeastern Illinois and substantially lighter coverage across much of the rest of the state. Second, AQS provides the primary statewide structure of the audit, while OpenAQ serves as a useful but smaller supplementary source. Third, data completeness is generally strong for many stations, but station-level quality varies enough that quality screening remains an important part of any comparison or later modeling step.
+This appendix summarizes how the repository maps to the course project requirements document, `Environmental_Monitoring_Requirements_Document.docx`. Items marked complete in the planning document are fully represented in the repository. Items originally marked planned or in progress were narrowed to fit the final reproducible PM2.5 auditor scope.
 
-This version of the project is more modest than the original proposal, but it is also more realistic, more reproducible, and better aligned with the course expectations. It establishes a stable baseline workflow that can support later extensions in spatial equity analysis, calibration, or bias-correction if time allows.
+| Requirement | Original intent | Current repository status |
+| --- | --- | --- |
+| PR-01: Finalize scope, schema, and API access | Define study region, PM2.5 focus, APIs, and data dictionary. | Complete. The project uses PM2.5, AQS, OpenAQ, `config.yaml`, and `docs/data_dictionary.md`. |
+| PR-02: Build data ingestion and caching pipeline | Retrieve AQS and OpenAQ data and preserve source provenance. | Partially complete. The notebook retrieves live data in API mode and supports sample-data mode for reproducibility. |
+| PR-03: Harmonize timestamps, units, and variables | Standardize timestamps, units, pollutant fields, and source fields. | Complete for the final workflow. The notebook and pipeline harmonize timestamps, units, PM2.5 values, provider labels, and station IDs. |
+| PR-04: Engineer data-quality features | Compute sensor-level quality features. | Partially complete. The workflow computes missing rate, percent complete, outlier rate, mean PM2.5, and standard deviation. |
+| PR-05: Spatial joins and demographic context | Link monitors to census geography and environmental justice covariates. | Deferred. The final project focuses on monitoring coverage and data quality rather than demographic integration. |
+| PR-06: Coverage diagnostics and equity metrics | Produce coverage summaries, maps, and tabular diagnostics. | Partially complete. The workflow generates monitor maps, station counts, coverage summaries, and quality diagnostics; demographic grouping was deferred. |
+| PR-07: Sensor reliability scoring model | Use unsupervised methods to score sensor reliability. | Deferred. The final machine learning scope uses supervised regression for paired AQS-OpenAQ comparison. |
+| PR-08: Bias correction or calibration model | Pair supplementary sensors with AQS and evaluate regression models. | Complete at baseline level. The workflow pairs AQS and OpenAQ records and compares linear regression with random forest regression using grouped cross-validation. |
+| PR-09: Package reproducible auditor workflow and documentation | Provide runnable notebook, README, outputs, and logging/error handling. | Complete at course-project level. The repository includes a notebook, configuration, sample data, documentation, expected outputs, and reproducibility instructions. |
 
-## IX. Selected References
+The main scope revision was intentional: instead of attempting every planned extension, the final repository prioritizes a reproducible PM2.5 auditor with interpretable coverage metrics, station-level quality diagnostics, and a modest supervised machine learning comparison.
+
+## References
 
 Hua, J., Y. Zhang, B. de Foy, X. Mei, J. Shang, Y. Zhang, I. D. Sulaymon, and D. Zhou, 2021: Improved PM2.5 concentration estimates from low-cost sensors using calibration models categorized by relative humidity. *Aerosol Science and Technology*, 55, 600-613. https://doi.org/10.1080/02786826.2021.1873911
 
@@ -144,6 +185,6 @@ Rosales, C., J. R. Bratburd, S. Diez, S. Duncan, C. Malings, and P. Pant, 2025: 
 
 Wang, Y., J. D. Marshall, and J. S. Apte, 2024: U.S. ambient air monitoring network has inadequate coverage under new PM2.5 standard. *Environmental Science & Technology Letters*, 11, 1220-1226. https://doi.org/10.1021/acs.estlett.4c00605
 
-## X. License
+## License
 
 This project is released under the MIT License. See [LICENSE](LICENSE).
