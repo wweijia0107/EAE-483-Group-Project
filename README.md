@@ -134,7 +134,7 @@ AQS_KEY=your_aqs_key_here
 OPENAQ_KEY=your_openaq_key_here
 ```
 
-3. Set `USE_SAMPLE_DATA = False` in the notebook.
+3. Set `USE_SAMPLE_DATA = False` in config.yaml.
 4. Run the notebook from the beginning.
 
 ### 5c. Expected Outputs
